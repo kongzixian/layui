@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>layui</title>
+    <link rel="stylesheet" type="text/css" href="css/base.css" />
+    <link rel="stylesheet" type="text/css" href="plugins/layui/css/layui.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <style type="text/css">
+      .layer-box{display:none;}
+    </style>
+</head>
+<body> 
+    <button id="btn1">按钮1</button>
+    <button id="btn2">按钮2</button>
+    <div id="layerBox">
+      <!-- 复核-->
+      <div id="layer-review" class="layer-box">
+        <div class="p-10">
+          <textarea class="plain">同意</textarea>
+        </div>
+        <div class="dialog-button">
+          <button class="btn btn-lg-blue">取消</button>
+          <button class="btn btn-lg-red">确认</button>
+        </div>
+      </div>
+      <!-- 退回-->
+      <div id="layer-refund" class="layer-box">
+        <div class="p-10">
+          <textarea class="plain">数据有误，退回修改</textarea>
+        </div>
+        <div class="dialog-button">
+          <button class="btn btn-lg-blue">取消</button>
+          <button class="btn btn-lg-red">确认</button>
+        </div>
+      </div>
+      <!-- 作废-->
+      <div id="layer-invalid" class="layer-box">
+        <div class="p-10">
+          <textarea class="plain">交易取消</textarea>
+        </div>
+        <div class="dialog-button">
+          <button class="btn btn-lg-blue">取消</button>
+          <button class="btn btn-lg-red">确认</button>
+        </div>
+      </div>
+      <!-- 打印-->
+      <div id="layer-print" class="layer-box">
+        <div class="p-10">
+          <textarea class="plain">由框架提供</textarea>
+        </div>
+        <div class="dialog-button">
+          <button class="btn btn-lg-blue">取消</button>
+          <button class="btn btn-lg-red">确认</button>
+        </div>
+      </div>
+      <!-- 导出按钮-->
+      <div id="layer-export" class="layer-box">
+        <div class="p-10">
+          <textarea class="plain">由框架提供</textarea>
+        </div>
+        <div class="dialog-button">
+          <button class="btn btn-lg-blue">导出当前页面</button>
+          <button class="btn btn-lg-red">导出全部</button>
+        </div>
+      </div>
+      <!-- 流程流转记录-->
+      <div id="layer-record" class="layer-box">
+        <div class="form bg-grey">
+          <div class="form-header">
+            <h2>基本账户信息</h2>
+          </div>
+          <div class="form-container clearfix">
+            <div class="linebox col-xs-6">
+              <label class="col-xs-4"><span>流水号：</span></label>
+              <div class="col-xs-8"><span>10010004938576900989</span></div>
+            </div>
+            <div class="linebox col-xs-6">
+              <label class="col-xs-4"><span>交易时间：</span></label>
+              <div class="col-xs-8"><span>2017-09-01  16:33:26</span></div>
+            </div>
+            <div class="linebox col-xs-6">
+              <label class="col-xs-4"><span>交易码：</span></label>
+              <div class="col-xs-8"><span>转账汇款</span></div>
+            </div>
+            <div class="linebox col-xs-6">
+              <label class="col-xs-4"><span>交易状态：</span></label>
+              <div class="col-xs-8"><span>等待复核</span></div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+
+    </div>
+    <script type="text/javascript" src="plugins/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="plugins/layui/layui.js"></script>
+    <script type="text/javascript">
+    layui.use(['layer'],function(){
+      var layer=layui.layer;
+      $('#btn1').on('click',function(){
+        layer.open({
+          type: 1,
+          shade: false,
+          title: '复核', //不显示标题
+          shadeClose: true,
+          shade: 0.8,
+          area: ['600px', '90%'],
+          content: $('#layer-review'), //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+          cancel: function(){
+            layer.msg('捕获就是从页面已经存在的元素上，包裹layer的结构', {time: 5000, icon:6});
+          }
+        });
+      })
+      $('#btn2').on('click',function(){
+        layer.open({
+          type: 1,
+          shade: false,
+          title: '退回', //不显示标题
+          shadeClose: true,
+          shade: 0.8,
+          area: ['600px', '90%'],
+          content: $('#layer-refund'), //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影响
+          cancel: function(){
+            layer.msg('捕获就是从页面已经存在的元素上，包裹layer的结构', {time: 5000, icon:6});
+          }
+        });
+      })
+    })
+
+        
+    </script>
+</body>
+</html>

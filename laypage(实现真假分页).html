@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>layui</title>
+    <link rel="stylesheet" type="text/css" href="css/base.css" />
+    <link rel="stylesheet" type="text/css" href="plugins/layui/css/layui.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <style type="text/css">
+      .box{width:900px;}
+    </style>  
+</head>
+
+<body>
+    <div>
+      <button id="btn0">真分页</button>
+      <button id="btn1">假分页</button>
+      <button id="btn2">改变数据</button>
+      <button id="btn3">获取当前页选中行数据</button>
+      <button id="btn4">获取所有选中行数据</button>
+    </div>
+    <div class="box">
+      <table class="layui-hide" id="common" lay-filter="common"></table>
+      <div id="laypage"></div>
+    </div>
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+    <script type="text/html" id="barDemo2">
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    </script>
+    <script type="text/javascript" src="plugins/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="plugins/layui/layui.js"></script>
+    <script type="text/javascript">
+       var handleData={
+          init:function(){
+            this.memoryDataFun();
+            // this.cacheLayuiModules();
+          },
+          // // 缓存layui的模块
+          // cacheLayuiModules:function(){
+          //   var self=this;
+          //   layui.use(['table','layer'],function(){
+          //     self.table=layui.table;
+          //     self.layer=layui.layer;
+          //   })
+          // },
+          // 缓存数据
+          MemoryData:function(){
+            var cache=[];
+            return function(data){
+              if(data){
+                cache=data;
+              }else if(cache.length==0){
+                this.layer.alert('没有数据')
+                return cache;
+              }else{
+                return cache;
+              }
+            }
+          },
+          memoryData:null,
+          memoryDataFun:function(){
+            this.memoryData=this.MemoryData()
+          },
+          // 一维数组转二维
+          dimensionality1To2: function(data,num){
+            var retArr = new Array(Math.ceil(data.length/num));
+            if(retArr.length==0){
+              retArr[0]=data
+            }else{
+              for(var i = 0; i<retArr.length;i++){
+                retArr[i] = [];
+                // for(var j = 0; j<num; j++){
+                // retArr[i][j] = '';
+                // }
+              }
+              for(var i = 0; i<data.length;i++){
+                retArr[parseInt(i/num)][i%num] = data[i]; 
+              }
+            }
+              return retArr;
+          },
+          // 二维数组转一维
+          dimensionality2To1:function(data){
+            var newArr=[];
+            $.each(data,function(index,item){
+              $.each(item,function(sonIndex,sonItem){
+                newArr.push(sonItem)
+              });
+            });
+            return newArr; 
+          },
+          tableUtl:function(url){
+            var self=this;
+            $.ajax({
+              url: url,
+              async:false,
+              type: "post",
+              dataType: 'json',
+              success: function(res) {
+                self.memoryData(res.data);
+                self.count=res.count;
+              }
+            });
+          },
+          tableReload:null,
+          count:0,
+          // 初始化表格 0真分页 1假分页
+          initTable:function(params,num,url){
+            var self=this;
+            layui.use(['table','laypage'],function(){
+              var table=layui.table;
+              var laypage=layui.laypage;
+              var config = {
+                elem: '#common',
+                done: function(res, curr, count) {
+                  // console.log(res)
+                  // console.log(curr)
+                  // console.log(self.count)
+                  if(num==undefined){
+                    $('#laypage').show();
+                    
+                  }else{
+                    $('#laypage').hide();
+                  }
+                  
+                },
+              };
+              $.extend(config,params);
+              if(num==0){
+                config.url=url;
+                config.page=true
+
+              }else{
+                config.page=false
+              }
+              var tableReload=this.tableReload=table.render(config)
+              // 数据假分页功能
+              laypage.render({
+                elem: 'laypage'
+                ,count: self.count
+                ,layout: [ 'page', 'skip', 'limit','count']
+                ,limits:[5,10,15,20,50]
+                ,jump: function(obj,first){
+                  //obj包含了当前分页的所有参数，比如：
+                  // console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                  // console.log(obj.limit); //得到每页显示的条数
+                  if(!first){
+                    // 获取数据并根据参数转成二维数据，根据当前页和limit得到当前页的数据
+                    var data=self.dimensionality1To2(self.memoryData(),obj.limit)[obj.curr-1]
+                    tableReload.reload({
+                      limit:obj.limit,
+                      curr:obj.curr,
+                      data:data
+                    })
+                  }
+                  
+
+                }
+              });
+              
+
+
+              //监听工具条
+              table.on('tool(common)', function(obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                  var data = obj.data //获得当前行数据
+                      ,
+                      layEvent = obj.event; //获得 lay-event 对应的值
+                  if (layEvent === 'detail') {
+                      layer.msg('查看操作');
+                  } else if (layEvent === 'del') {
+                      layer.confirm('真的删除行么', function(index) {
+                          obj.del(); //删除对应行（tr）的DOM结构
+                          layer.close(index);
+                          //向服务端发送删除指令
+                      });
+                  } else if (layEvent === 'edit') {
+                      layer.msg('编辑操作');
+                  }
+              });
+              
+              
+            })
+            
+            
+            
+          },
+
+
+    }
+    // 
+    // 
+    
+    // handleData数据缓存模块的初始化 
+    handleData.init()
+    // // 请求数据并保存(假分页)
+    handleData.tableUtl('json/tableFakePage.json')
+    var config={
+          cols: [
+                  [ //表头
+                      {type: 'checkbox',fixed:'left',width:70,},
+                      { field: 'id', title: 'ID', width: 80, sort: true, fixed: 'left' }, { field: 'username', title: '用户名', width: 80 }, { field: 'sex', title: '性别', width: 80, sort: true }, { field: 'city', title: '城市', width: 80 }, { field: 'sign', title: '签名', width: 170 }, { field: 'experience', title: '积分', width: 80, sort: true }, { field: 'score', title: '评分', width: 80, sort: true }, { field: 'classify', title: '职业', width: 80 }, { field: 'wealth', title: '财富', width: 135, sort: true }, {
+                          fixed: 'right',
+                          width: 165,
+                          align: 'center',
+                          toolbar: '#barDemo2'
+                      }
+                  ]
+                ],
+          data: handleData.dimensionality1To2(handleData.memoryData(),10)[0],
+          
+    }
+
+    // 真分页
+    $('#btn0').on('click',function(){
+      handleData.initTable(config,0,'json/tableRealPage.json');
+    }); 
+    // 假分页
+    $('#btn1').on('click',function(){
+      handleData.initTable(config);
+    });   
+    // 测试修改第一条数据
+    $('#btn2').on('click',function(){
+      var data=handleData.memoryData();
+      data[0].id=8888888;
+    });
+    // 获取当前页选中行数据
+    $('#btn3').on('click',function(){
+      layui.use(['table'],function(){
+        var table=layui.table;
+        var data=table.checkStatus('common');
+        console.log(data)
+        return data;
+        
+      })
+    });
+    // 获取所有选中行数据
+    $('#btn4').on('click',function(){
+      var newArr=[];
+      var data=handleData.memoryData();
+      $.each(data,function(index,item){
+        if(item.LAY_CHECKED==true){
+          newArr.push(item)
+        }
+      });
+      console.log(newArr);
+      return newArr
+    });
+    </script>
+</body>
+
+</html>
